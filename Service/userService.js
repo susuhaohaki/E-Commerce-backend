@@ -4,21 +4,6 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const UserSignUpService = async (data) => {
   try {
-    if (!data.name) {
-      throw new Error("Please provide name");
-    }
-    if (!data.email) {
-      throw new Error("Please provide email");
-    }
-
-    if (!data.password) {
-      throw new Error("Please provide password");
-    }
-
-    if (data.password.length < 8) {
-      throw new Error("Password is not strong enough");
-    }
-
     const emailExist = await userModel.findOne({ email: data.email });
     if (emailExist) {
       throw new Error("Email already exists");
@@ -40,12 +25,6 @@ const UserSignUpService = async (data) => {
 };
 
 const userSignInService = async (data) => {
-  if (!data.email) {
-    throw new Error("Please provide email");
-  }
-  if (!data.password) {
-    throw new Error("Please provide password");
-  }
   const user = await userModel.findOne({ email: data.email });
   if (!user) {
     throw new Error("user not found");
@@ -68,6 +47,35 @@ const userSignInService = async (data) => {
 const userDetailsService = async (userId) => {
   try {
     return await userModel.findById(userId);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
-module.exports = { UserSignUpService, userSignInService, userDetailsService };
+const allUserService = async () => {
+  return await userModel.find();
+};
+
+const updateUserService = async (data, sessionUser) => {
+  try {
+    const payload = {
+      ...(data.email && { email: data.email }),
+      ...(data.name && { name: data.name }),
+      ...(data.role && { role: data.role }),
+    };
+    const result = await userModel.findByIdAndUpdate(data.userId, payload, {
+      new: true,
+    });
+    const user = await userModel.findById(sessionUser);
+    console.log("user.role", user.role);
+    return result;
+  } catch (err) {
+    console.log(err);
+  }
+};
+module.exports = {
+  UserSignUpService,
+  userSignInService,
+  userDetailsService,
+  allUserService,
+  updateUserService,
+};

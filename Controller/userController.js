@@ -1,12 +1,30 @@
+const userModel = require("../Model/userModel.js");
 const {
   UserSignUpService,
   userSignInService,
   userDetailsService,
+  allUserService,
+  updateUserService,
 } = require("../Service/userService.js");
 
 const userSignUpController = async (req, res) => {
   try {
-    const result = await UserSignUpService(req.body);
+    const data = req.body;
+    if (!data.name) {
+      throw new Error("Please provide name");
+    }
+    if (!data.email) {
+      throw new Error("Please provide email");
+    }
+
+    if (!data.password) {
+      throw new Error("Please provide password");
+    }
+
+    if (data.password.length < 8) {
+      throw new Error("Password is not strong enough");
+    }
+    const result = await UserSignUpService(data);
     return res.status(201).json({
       data: result,
       success: true,
@@ -24,7 +42,14 @@ const userSignUpController = async (req, res) => {
 
 const userSignInController = async (req, res) => {
   try {
-    const { user, token } = await userSignInService(req.body);
+    const data = req.body;
+    if (!data.email) {
+      throw new Error("Please provide email");
+    }
+    if (!data.password) {
+      throw new Error("Please provide password");
+    }
+    const { user, token } = await userSignInService(data);
     const tokenOption = {
       httpOnly: true,
       secure: true,
@@ -47,7 +72,6 @@ const userSignInController = async (req, res) => {
 
 const userDetailsController = async (req, res) => {
   try {
-    console.log("userID ", req.userId);
     const response = await userDetailsService(req.userId);
     res.status(200).json({
       data: response,
@@ -64,8 +88,66 @@ const userDetailsController = async (req, res) => {
   }
 };
 
+const userLogoutController = async (req, res) => {
+  try {
+    res.clearCookie("token");
+
+    res.status(200).json({
+      message: "logged out successfully",
+      error: false,
+      success: true,
+      data: [],
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+const getallUserController = async (req, res) => {
+  try {
+    const allUsers = await allUserService();
+    res.status(200).json({
+      message: "all user",
+      data: allUsers,
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+const updateUserController = async (req, res) => {
+  try {
+    const sessionUser = req.userId;
+    const data = await updateUserService(req.body, sessionUser);
+    res.status(200).json({
+      data: data,
+      message: "update user successfully",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
 module.exports = {
   userSignUpController,
   userSignInController,
   userDetailsController,
+  userLogoutController,
+  getallUserController,
+  updateUserController,
 };
