@@ -16,6 +16,8 @@ const {
   getCategoryProduct,
   getCategoryWiseProductController,
   getProductDetailController,
+  searchProductController,
+  filterProductController,
 } = require("../Controller/productController.js");
 //import cart
 const {
@@ -23,6 +25,7 @@ const {
   countAddToCartProductController,
   cartViewProductController,
   deleteCartProductController,
+  updateAddToCartProductController,
 } = require("../Controller/cartController.js");
 const authToken = require("../middleware/authToken.js");
 const router = express.Router();
@@ -43,6 +46,7 @@ router.post("/update-product", authToken, updateProductController);
 router.get("/get-categoryProduct", getCategoryProduct);
 router.post("/category-product", getCategoryWiseProductController);
 router.post("/product-details", getProductDetailController);
+router.get("/search", searchProductController);
 
 //cart
 router.post("/addtocart", authToken, addToCartController);
@@ -53,4 +57,10 @@ router.get(
 );
 router.get("/view-card-product", authToken, cartViewProductController);
 router.post("/delete-cart-product", deleteCartProductController);
+router.post(
+  "/update-cart-product",
+  authToken,
+  updateAddToCartProductController
+);
+router.post("/filter-product", filterProductController);
 module.exports = router;

@@ -1,9 +1,11 @@
-const CartModel = require("../Model/cartProduct.js");
+const CartModel = require("../model/cartProduct.js");
 
 const addToCartService = async (productId, currentUser) => {
   try {
-    console.log(productId, "------", currentUser);
-    const isProductAvailable = await CartModel.findOne({ productId });
+    const isProductAvailable = await CartModel.findOne({
+      productId,
+      userId: currentUser,
+    });
 
     if (isProductAvailable) {
       return {
@@ -14,15 +16,14 @@ const addToCartService = async (productId, currentUser) => {
     }
 
     const payload = {
-      productId: productId,
+      productId,
       quantity: 1,
       userId: currentUser,
     };
 
     const newAddToCart = new CartModel(payload);
-    console.log("newAddToCart", newAddToCart);
     const saveProduct = await newAddToCart.save();
-    console.log();
+
     return {
       data: saveProduct,
       message: "Product added to cart",
@@ -34,26 +35,51 @@ const addToCartService = async (productId, currentUser) => {
     throw new Error("Failed to add product to cart");
   }
 };
+
 const countAddToCartProductService = async (userId) => {
-  const count = await CartModel.countDocuments({ userId: userId });
-  console.log("count", count);
-  return count;
-};
-const cartViewProductService = async (currentUser) => {
   try {
-    console.log(currentUser);
-    return await CartModel.find({ userId: currentUser }).populate("productId");
+    const count = await CartModel.countDocuments({ userId });
+    return count;
   } catch (error) {
-    console.log(error);
+    console.error("Error in countAddToCartProductService:", error);
+    throw new Error("Failed to count cart products");
   }
 };
-const deleteCartProductService = async (id) => {
-  console.log("id>>>>>", id);
-  return await CartModel.deleteOne({ _id: id });
+
+const cartViewProductService = async (currentUser) => {
+  try {
+    return await CartModel.find({ userId: currentUser }).populate("productId");
+  } catch (error) {
+    console.error("Error in cartViewProductService:", error);
+    throw new Error("Failed to retrieve cart products");
+  }
 };
+
+const deleteCartProductService = async (id) => {
+  try {
+    return await CartModel.deleteOne({ _id: id });
+  } catch (error) {
+    console.error("Error in deleteCartProductService:", error);
+    throw new Error("Failed to delete cart product");
+  }
+};
+
+const updateAddToCartProductService = async (data) => {
+  try {
+    return await CartModel.updateOne(
+      { _id: data._id },
+      { quantity: data.quantity }
+    );
+  } catch (error) {
+    console.error("Error in updateAddToCartProductService:", error);
+    throw new Error("Failed to update cart product");
+  }
+};
+
 module.exports = {
   addToCartService,
   countAddToCartProductService,
   cartViewProductService,
   deleteCartProductService,
+  updateAddToCartProductService,
 };
